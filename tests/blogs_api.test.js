@@ -158,6 +158,43 @@ describe('blog test DELETE', () => {
   })
 })
 
+describe('blog test PUT', () => {
+  let addedBlog
+  beforeAll(async () => {
+    addedBlog =  new Blog({
+      _id: '5a422b3a1b54a676234d1232',
+      title: 'Canonical string reduction',
+      author: 'Edsger W. Dijkstra',
+      url: 'http://www.cs.utexas.edu/~EWD/transcriptions/EWD08xx/EWD808.html',
+      likes: 12,
+      __v: 0
+    })
+    await addedBlog.save()
+  })
+
+  test('PUT succeeds', async () => {
+    const blogsAtStart = await helper.blogsInDb()
+    changedBlog =  new Blog({
+      _id: '5a422b3a1b54a676234d1232',
+      title: 'Canonical string reduction',
+      author: 'Edsger W. Dijkstra',
+      url: 'http://www.cs.utexas.edu/~EWD/transcriptions/EWD08xx/EWD808.html',
+      likes: 1500,
+      __v: 0
+    })
+    await api
+      .put(`/api/blogs/${addedBlog._id}`)
+      .send(changedBlog)
+      .expect(200)
+
+    const blogsAfterOperation = await helper.blogsInDb()
+    expect(blogsAfterOperation.length).toBe(blogsAtStart.length)
+
+    const likes = blogsAfterOperation.map(b => b.likes)
+    expect(likes).toContainEqual(changedBlog.likes)
+  })
+})
+
 describe('when there is initially one user at db', async () => {
 
   test('POST /api/users succeeds with a fresh username', async () => {
