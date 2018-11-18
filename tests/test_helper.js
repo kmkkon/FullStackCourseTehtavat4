@@ -50,6 +50,12 @@ const getOneToken = async () => {
   return token
 }
 
+const getOneUser = async () => {
+  const users = await usersInDb()
+  const user = users[0]
+  return user
+}
+
 module.exports = {
-  listWithManyBlogs, blogsInDb, usersInDb, getOneToken
+  listWithManyBlogs, blogsInDb, usersInDb, getOneToken, getOneUser
 }

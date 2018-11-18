@@ -133,29 +133,56 @@ describe('blog test POST', () => {
 
 describe('blog test DELETE', () => {
   let addedBlog
+  let addingUser
   beforeAll(async () => {
+    addingUser = await helper.getOneUser()
     addedBlog =  new Blog({
-      _id: '5a422b3a1b54a676234d17f9',
+      _id: '5a422b3a1b54a676234d9999',
       title: 'Canonical string reduction',
       author: 'Edsger W. Dijkstra',
       url: 'http://www.cs.utexas.edu/~EWD/transcriptions/EWD08xx/EWD808.html',
       likes: 12,
-      __v: 0
+      __v: 0,
+      user: addingUser
     })
     await addedBlog.save()
   })
 
-  test('DELETE succeeds', async () => {
+  test('DELETE fails without token', async () => {
     const blogsAtStart = await helper.blogsInDb()
     await api
       .delete(`/api/blogs/${addedBlog._id}`)
+      .expect(401)
+
+    const blogsAfterOperation = await helper.blogsInDb()
+    expect(blogsAfterOperation.length).toBe(blogsAtStart.length)
+
+
+  })
+
+  test('DELETE succeeds', async () => {
+    const blogsAtStart = await helper.blogsInDb()
+    const token = await helper.getOneToken()
+    await api
+      .delete(`/api/blogs/${addedBlog._id}`)
+      .set('Authorization', 'bearer ' + token)
       .expect(204)
 
     const blogsAfterOperation = await helper.blogsInDb()
     expect(blogsAfterOperation.length).toBe(blogsAtStart.length-1)
-
-
   })
+
+/*  test('DELETE succeeds', async () => {
+    const blogsAtStart = await helper.blogsInDb()
+    const token = await helper.getOneToken()
+    await api
+      .delete(`/api/blogs/${addedBlog._id}`)
+      .set('Authorization', 'bearer ' + token)
+      .expect(204)
+
+    const blogsAfterOperation = await helper.blogsInDb()
+    expect(blogsAfterOperation.length).toBe(blogsAtStart.length-1)
+  })*/
 })
 
 describe('blog test PUT', () => {
