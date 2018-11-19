@@ -71,9 +71,11 @@ blogsRouter.delete('/:id', async (request, response) => {
       return response.status(401).json({ error: 'token missing or invalid' })
     }
     const blog = await Blog.findById(request.params.id)
-    if ( blog.user.id.toString() === decodedToken.id.toString() ){
-      return response.status(400).json({error: 'incorrect user'})
-    }
+    if (blog.user !== undefined){
+      if ( blog.user.id.toString() === decodedToken.id.toString() ){
+        return response.status(400).json({error: 'incorrect user'})
+      }
+      }
     await Blog.findByIdAndRemove(request.params.id)
     response.status(204).end()
   } catch (exception) {
@@ -85,26 +87,11 @@ blogsRouter.delete('/:id', async (request, response) => {
   }
 })
 
-blogsRouter.put('/:id', async(request, response) => {
-  const body = request.body
-  const users = await User.find({})
-  const user = users[0]
-try {
-    const blog = new Blog({
-      _id: body._id,
-      title: body.title,
-      author: body.author,
-      url: body.url,
-      likes: body.likes,
-      user : user._id,
-      __v: 0
-    })
-    const updatedBlog = await Blog.findByIdAndUpdate(body._id, blog)
-    response.json(updatedBlog)
-    } catch (error) {
-      console.log(error)
-      response.status(400).send({ error: 'malformatted id' })
-    }
+blogsRouter.put('/:id', async (request, response) => {
+  const { title, author, url, likes } = request.body
+  const blog = await Blog.findByIdAndUpdate(request.params.id, { title, author, url, likes } , { new: true })
+
+  response.send(blog)
 })
 
 module.exports = blogsRouter
